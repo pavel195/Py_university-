@@ -2,16 +2,18 @@ base = {'IT': 260,
         "MED": 240,
         'Engenir' : 219}
 
-class Student(EGE):
-    def __init__(self,name,degree,facult,scoreEGE):
+class Student():
+    def __init__(self,name,degree,facult,scoreEGE = 0):
         self.__init__(name)
         self.degree = degree
         self.facult = facult
         self.scoreEGE = scoreEGE
     def display(self):
         print(self.name,self.facult,self.degree,self.scoreEGE)
-vlad = Student('Vlad',1,'IT',250)
-vlad.display()
+class Abitu(Student):
+    def __init__(self):
+
+
 class EGE():
     def __init__(self,subj,score):
         self.subj = subj
@@ -38,12 +40,16 @@ class Vyz():
             prosh[student.facult].append(student.name)
         else:
             print('no')
-MIIT = Vyz('MIIT')
-MIIT.new_fac('Engeniring',249)
-MIIT.new_fac('IT',257)
-MIIT.new_fac('LOGIST',180)
-MIIT.display_info()
-vlad = Student('vlad',1,'IT',280)
-MIIT.priem_v_vyz(vlad)
+if __name__ =='__main__':
+
+    vlad = Student('Vlad',1,'IT',250)
+    vlad.display()
+    MIIT = Vyz('MIIT')
+    MIIT.new_fac('Engeniring',249)
+    MIIT.new_fac('IT',257)
+    MIIT.new_fac('LOGIST',180)
+    MIIT.display_info()
+    vlad = Student('vlad',1,'IT',280)
+    MIIT.priem_v_vyz(vlad)
 
 
