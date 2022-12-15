@@ -1,41 +1,45 @@
 base = {'IT': 260,
         "MED": 240,
         'Engenir' : 219}
-class Student:
+class Person:
+    def __init__(self,name):
+        self.name = name
+class Student(Person):
     def __init__(self,name,degree,facult,scoreEGE):
+        super().__init__(name)
         self.degree = degree
         self.facult = facult
         self.scoreEGE = scoreEGE
-
+    def display(self):
+        print(self.name,self.facult,self.degree,self.scoreEGE)
+vlad = Student('Vlad',1,'IT',250)
+vlad.display()
+class EGE():
+    def s(self):
+        self.score = int(input('ur total score on EGE:'))
 class Vyz():
-    def __init__(self,facs,scores):
-        self.facs = facs
-        self.scores = scores
-facs = ['IT','MED',"ENG"]
+    def __init__(self,name):
+        self.name = name
+        self.facs_and_scores = {}
+    def display_info(self):
+        print(self.name,self.facs_and_scores)
+    def new_fac(self,fac,score):
+        # self.fac = input('name of facultet:')
+        # self.score = int('score for facult:')
+        self.fac = fac
+        self.score = score
+        self.facs_and_scores[self.fac] = self.score
+    def priem_v_vyz(self,student):
+        if student.scoreEGE >= self.facs_and_scores[student.facult]:
+            print('u are hired')
+        else:
+            print('no')
+MIIT = Vyz('MIIT')
+MIIT.new_fac('Engeniring',249)
+MIIT.new_fac('IT',257)
+MIIT.new_fac('LOGIST',180)
+MIIT.display_info()
+vlad = Student('vlad',1,'IT',280)
+MIIT.priem_v_vyz(vlad)
 
-class priem_v_vyz(Vyz):
-
-
-
-
-
-egor = Vyz('egor',1,'IT',215)
-vlad = Vyz('vlad',1,'MED',280)
-
-
-
-
-
-# class Vyz(Student):
-#     def __init__(self,name,degree,facult,scoreEGE):
-#         super().__init__(name,degree,facult,scoreEGE)
-#     def priem_v_vyz(self):
-#         if self.scoreEGE >= base[self.facult]:
-#             print(f'UR are hired! u have {self.scoreEGE}, but u need {base[self.facult]}')
-#         else:
-#             print(f'SORYY,take a chance next year!U have {self.scoreEGE}, but u need {base[self.facult]}')
-# egor = Vyz('egor',1,'IT',215)
-# vlad = Vyz('vlad',1,'MED',280)
-# egor.priem_v_vyz()
-# vlad.priem_v_vyz()
 
