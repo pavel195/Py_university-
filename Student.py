@@ -1,12 +1,10 @@
 base = {'IT': 260,
         "MED": 240,
         'Engenir' : 219}
-class Person:
-    def __init__(self,name):
-        self.name = name
-class Student(Person):
+
+class Student(EGE):
     def __init__(self,name,degree,facult,scoreEGE):
-        super().__init__(name)
+        self.__init__(name)
         self.degree = degree
         self.facult = facult
         self.scoreEGE = scoreEGE
@@ -15,12 +13,17 @@ class Student(Person):
 vlad = Student('Vlad',1,'IT',250)
 vlad.display()
 class EGE():
-    def s(self):
-        self.score = int(input('ur total score on EGE:'))
+    def __init__(self,subj,score):
+        self.subj = subj
+
+    # def test(self,score):
+    #     self.score = int(input('ur total score on EGE:'))
+    #     return self.score
 class Vyz():
     def __init__(self,name):
         self.name = name
         self.facs_and_scores = {}
+        self.prosh={}
     def display_info(self):
         print(self.name,self.facs_and_scores)
     def new_fac(self,fac,score):
@@ -32,6 +35,7 @@ class Vyz():
     def priem_v_vyz(self,student):
         if student.scoreEGE >= self.facs_and_scores[student.facult]:
             print('u are hired')
+            prosh[student.facult].append(student.name)
         else:
             print('no')
 MIIT = Vyz('MIIT')
