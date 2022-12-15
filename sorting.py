@@ -18,14 +18,14 @@ def choice(array):
         if id!=i:           # меняем их местами
             array[i],array[id] = array[id],array[i]
     return array
+
 def insertion(array):
     l = len(array)
     for i in range(1, l):
-            # идем от iтого элемента в обратную сторону и ищем элементы меньшие i-1того элемента
+            # идем от iтого элемента в обратную сторону и ищем элементы меньшие
         if array[i] < array[i-1]:    # идем пока не найдем число меньше iтого
             array[i],array[i-1] = array[i-1],array[i] # меняем их местами
     return array
-
 
 def insertion_binary(array):
     for i in range(len(array)):
