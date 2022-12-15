@@ -30,14 +30,3 @@ def insertion_binary(array):
             array[j] = array[j - 1]
         array[start] = key
     return array
-
-def quicksort(array):
-    left = 0
-    right = len(array)
-    quick(array, left, right)
-def quick(array, left, right):
-    if right - left > 1:
-        m = partition(array, left, right)
-        quick(array, left, m)
-        quick(array, m + 1, right)
-    return array
