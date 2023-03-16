@@ -1,0 +1,44 @@
+import random
+def podschet(func):
+    def wrapper(*args, **kwargs):
+        wrapper.count += 1
+        print(f'---Функция {func.name} выполнилась {wrapper.count} раз---')
+        return func(*args, **kwargs)
+    wrapper.count = 0
+    return wrapper
+
+class Employee:
+    'Common base class for all employees'
+    empCount = 0
+    #@podschet
+    def __init__(self, name, salary,company):
+        self.name = name
+        self.salary = salary
+        self.company = company
+        Employee.empCount += 1
+    #@podschet
+    def displayCount(self):
+        print(f"Total Employee  {Employee.empCount}")
+    #@podschet
+    def displayEmployee(self):
+        print(f"Name :  {self.name} , Salary {self.salary}")
+
+class Company:
+    #@podschet
+    def __int__(self,name, max_salary):
+        self.name = name
+        self.max_salary = max_salary
+    #@podschet
+    def displayComplany(self):
+        print(f'Company {Company.name} can pay to employees {Company.max_salary}')
+
+
+names = ['Sasha', 'Misha','Georg','Peter']
+companies = ['Yandex', 'Google']
+employers = []
+for i in range(10):
+    employers.append(Employee(names[random.randint(0,len(names))], random.randint(100000,2000000),companies[random.randint(0,len(companies))]))
+for a in employers:
+    print(a.name)
+comp1 = Company('Yandex',500000)
+comp2 = Company('Google',1000000)
