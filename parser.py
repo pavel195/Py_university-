@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup as bs
 import numpy as np
 url = 'https://world-weather.ru/pogoda/united_kingdom/london/'
 headers_ = {'User-Agent':'Chrome/39.0.2171.95'}
-months = ['january']
+months = 'january february march may june july august september'.split()
 temprature_list = [[]*12]
 for month in months:
     url_ = url + month + '-2022/'
@@ -21,5 +21,5 @@ for month in months:
           f'СРЕДНЯЯ ТЕМП: {np.min(temprature_array)} \n'
           f'Минимальная темп : {np.min(temprature_array)} \n'
           f'Дисперсия : {np.var(temprature_array)} \n'
-          f'Стандартное отклонение : {np.std(temprature_array)}'
+          f'Стандартное отклонение : {np.std(temprature_array):.2f}'
           f'')
