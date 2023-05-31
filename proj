@@ -1,0 +1,296 @@
+import requests
+from bs4 import BeautifulSoup as bs
+import sqlite3
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import pandas as pd
+import six
+def main():
+    def render_mpl_table(data, col_width=3.0, row_height=0.625, font_size=14,
+                         header_color='#40466e', row_colors=['#f1f1f2', 'w'], edge_color='w',
+                         bbox=[0, 0, 1, 1], header_columns=0,
+                         ax=None, **kwargs):
+        if ax is None:
+            size = (np.array(data.shape[::-1]) + np.array([0, 1])) * np.array([col_width, row_height])
+            fig, ax = plt.subplots(figsize=size)
+            ax.axis('off')
+
+        mpl_table = ax.table(cellText=data.values, bbox=bbox, colLabels=data.columns, **kwargs)
+
+        mpl_table.auto_set_font_size(False)
+        mpl_table.set_fontsize(font_size)
+
+        for k, cell in six.iteritems(mpl_table._cells):
+            cell.set_edgecolor(edge_color)
+            if k[0] == 0 or k[1] < header_columns:
+                cell.set_text_props(weight='bold', color='w')
+                cell.set_facecolor(header_color)
+            else:
+                cell.set_facecolor(row_colors[k[0] % len(row_colors)])
+        return ax
+
+
+    URL = "http://global-finances.ru/chislennost-naseleniya-rossii-po-godam/"
+    r = requests.get(URL)
+    years = []
+    kols = []
+    chisla = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    soup = bs(r.text, "html.parser")
+    # vacancies_names = soup.find('div', class='bcrys644a4ca8c1fdf')
+    vacancies_names = soup.find_all('p')
+    for name in vacancies_names:
+        name = name.text
+        name = list(name)
+        year = name[0:5:1]
+        i = 0
+        if (name != []):
+            while (name[i] != '\xa0'):
+                if (i == len(name) - 1):
+                    break
+                i += 1
+        if (i < len(name) - 1):
+            if (name[i + 1] == ' '):
+                while (name[i] not in chisla):
+                    i += 1
+                kol = name[i:i + 7:1]
+            if (year != []):
+                if (year[-1] == 'г'):
+                    year = year[0:4:1]
+                    year = "".join(year)
+                    kol = "".join(kol)
+                    kol = kol.replace(',', '.')
+                    kols.append(float(kol))
+                    years.append(int(year))
+
+    conn = sqlite3.connect('C:\PycharmProjects\Parsing_BeautifulSoup\database.db')
+    cur = conn.cursor()
+    cur.execute("""DELETE FROM `info` """)
+    conn.commit()
+    chisla2 = [14.2, 14.4, 14.9, 14.7, 13.7, 12.7, 12.4, 12.9, 13.2, 13.4, 13.7, 14.3, 14.6, 14.7, 14.8, 14.6, 14.1,
+               14.7, 15.2, 15.5, 15.2, 15.5, 15.5, 15.7, 15.7, 15.5, 15.5, 15.5, 16.2, 16.2]
+
+    for i in range(0, len(years)):
+        data = (years[i], kols[i])
+        cur.execute("""INSERT INTO `info` (year,kol) values (?,?)""", data)
+        conn.commit()
+
+    URL = "https://visasam.ru/russia/goroda/bednost-v-rossii.html"
+    r = requests.get(URL)
+    soup = bs(r.text, "html.parser")
+    vacancies_names = soup.find_all('td', width=319)
+
+    perc = []
+    years2 = []
+    for name in vacancies_names:
+        if (name.text[0] in chisla):
+            if (',' in list(name.text)):
+                chislo = name.text.replace(',', '.')
+                perc.append(float(chislo))
+            else:
+                name = list(name.text)
+                year = name[0:4:1]
+                year = "".join(year)
+                years2.append(int(year))
+
+    for i in range(0, len(years2)):
+        data = (perc[i], years2[i])
+        cur.execute("""UPDATE `info` SET perc = ? WHERE year = ?""", data)
+        conn.commit()
+
+    chisla3 = [10.1, 11.3, 13.2, 13.5, 14, 15, 15.5, 15.6, 15, 16, 16.2, 17, 18, 19.4, 23.5, 21.2, 25.9, 26.4, 20.9, 19,
+               19.2, 19.4, 21.2, 22.5, 22.7, 23, 23.5, 23.4, 24, 23]
+    URL = "https://ru.wikipedia.org/wiki/Население_Германии#Демографическая_статистика_с_1900_года"
+    r = requests.get(URL)
+    soup = bs(r.text, "html.parser")
+    table = soup.find("table", {"class": "wikitable mw-collapsible collapsible"})
+
+    years_ger = []
+    nas_ger = []
+    trs = table.find_all("tr")
+    for tr in trs:
+        tds = tr.find_all('td')
+        i = 0
+        for td in tds:
+            if i == 0:
+                years_ger.append(td.text)
+            if i == 1:
+                nas = str(td.text)
+                nas_ger.append(nas)
+            i += 1
+        # years_ger.append(tds[0])
+    years_ger = [line.rstrip() for line in years_ger]
+    nas_ger = [line.rstrip() for line in nas_ger]
+    nas_ger = [nas.replace("\xa0", "") for nas in nas_ger]
+    for i in range(len(years_ger)):
+        data = [nas_ger[i], years_ger[i]]
+        cur.execute("""UPDATE `info` SET Ger_kol = ? WHERE year = ?""", data)
+        conn.commit()
+    k = 0
+    for i in range(1992, 2022):
+        data = [chisla2[k], i]
+        cur.execute("""UPDATE `info` SET Ger_perc = ? WHERE year = ?""", data)
+        k += 1
+        conn.commit()
+
+    URL = "https://countrymeters.info/ru/Latvia"
+    r = requests.get(URL)
+    soup = bs(r.text, "html.parser")
+    tables = soup.find_all('script', {"type": "text/javascript"})
+    i = 0
+    mass_text = ""
+    for table in tables:
+        if i == 6:
+            mass_text = str(table.text)
+        i += 1
+    counter = 0
+    text = ""
+    while i < len(mass_text):
+        if mass_text[i] == "[":
+            counter += 1
+        if counter == 4:
+            while mass_text[i] != ')':
+                text += mass_text[i]
+                i += 1
+            counter = 10
+        i += 1
+    text.replace(" ", "")
+    i = 0
+    lat_year = []
+    lat_nas = []
+    while i < len(text):
+        while text[i] != "'" and i < len(text) - 1:
+            i += 1
+
+        if (i > len(text) - 2):
+            break
+        i += 1
+        one_year = ""
+        while text[i] != "'" and i < len(text) - 1:
+            one_year += text[i]
+            i += 1
+        lat_year.append(int(one_year))
+        while text[i] not in chisla and i < len(text) - 1:
+            i += 1
+        one_nas = ""
+        while text[i] != "]" and i < len(text) - 1:
+            one_nas += text[i]
+            i += 1
+        lat_nas.append(int(one_nas))
+        i += 1
+    for i in range(len(lat_year)):
+        data = [lat_nas[i], lat_year[i]]
+        cur.execute("""UPDATE `info` SET Lat_kol = ? WHERE year = ?""", data)
+        conn.commit()
+    k = 0
+
+    for i in range(1992, 2022):
+        data = [chisla3[k], i]
+        cur.execute("""UPDATE `info` SET Lat_perc = ? WHERE year = ?""", data)
+        k += 1
+        conn.commit()
+    years = [i for i in range(1992, 2022)]
+    Ru_nas = []
+    Ger_nas = []
+    Lat_nas = []
+    Ru_perc = []
+    Ger_perc = []
+    Lat_perc = []
+    sqlite_select_query = """SELECT * from info"""
+    cur.execute(sqlite_select_query)
+    records = cur.fetchall()
+    print(records)
+    print(records)
+    for row in records:
+        if (row[0] < 2022):
+            Ru_nas.append(row[1])
+            Ru_perc.append(row[2])
+            Ger_nas.append(row[3] / 1000000)
+            Ger_perc.append(row[4])
+            Lat_nas.append(row[5] / 1000000)
+            Lat_perc.append(row[6])
+
+    cur.close()
+    # for i in range(len(Ru_nas)):
+    #     RU_poor.append(Ru_nas[i]*Ru_perc[i])
+    fig, axs = plt.subplots(3, 2, figsize=(12, 6), sharey=True)
+
+    axs[0,0].set_title('Russian population')
+    axs[0, 0].plot([x for x in range(1992, 2022)], Ru_nas, color='black',marker='o')
+    axs[0,1].plot([x for x in range(1992, 2022)], Ru_perc,color = 'black',marker='o')
+    axs[0,1].set_title('% Russian poor people', fontsize=20, fontname='Times New Roman')
+    axs[1, 0].plot([x for x in range(1992, 2022)], Ger_nas, color='blue',marker='o')
+    axs[1, 0].set_title('Germany population')
+    axs[1, 1].plot([x for x in range(1992, 2022)], Ger_perc, color='black',marker='o')
+    axs[1, 1].set_title('% Germany poor people', fontsize=20, fontname='Times New Roman')
+
+    axs[2, 0].plot([x for x in range(1992, 2022)], Lat_nas, color='blue',marker='o')
+    axs[2, 0].set_title('Latvia population')
+    axs[2, 1].plot([x for x in range(1992, 2022)], Lat_perc, color='black',marker='o')
+    axs[2, 1].set_title('% Latvia poor people', fontsize=20, fontname='Times New Roman')
+    fig.suptitle('Comparing countries')
+
+    fig.tight_layout()
+    # plt.subplots_adjust(
+    #                     bottom=0.1,
+    #                     top=0.9,
+    #                     wspace=0.3,
+    #                     hspace=0.35)
+    plt.show()
+    # plt.figure()
+    # plt.plot([x for x in range(1992, 2022)],Ru_perc,color = 'blue')
+    # plt.plot([x for x in range(1992, 2022)], Ger_perc,color = 'black')
+    # plt.plot([x for x in range(1992, 2022)], Lat_perc,color = 'red')
+    difRG = []
+    for i in range(len(Ru_perc)):
+        s = Ru_perc[i]-Ger_perc[i]
+        difRG.append(int(s))
+    difRL=[]
+    for i in range(len(Ru_perc)):
+        s = Ru_perc[i] - Lat_perc[i]
+        difRL.append(int(s))
+    print(difRL)
+    print(difRG)
+    data = {'Year': [x for x in range(1992,2022)], 'Dif_Ru_Ger': [str(x) for x in difRG],'Dif_Ru_Lat': [str(x) for x in difRL]}
+    # data = {'Year': [x for x in range(1992,2022)], 'Ru_poor'}
+    df = pd.DataFrame(data)
+    print(df)
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+    axs[0].set_title('Comparing poor Russians - Germans per year')
+    l1,= axs[0].plot(df['Year'], [int(x) for x in Ru_perc], color='green', marker='o', markersize=7,label='Ru_poor')
+    l2,= axs[0].plot(df['Year'], [int(x) for x in Ger_perc], color='black', marker='o', markersize=7,label='Ger_poor')
+    axs[1].set_title('Comparing poor Russians - Latvians per year')
+    l3,=axs[1].plot(df['Year'], [int(x) for x in Ru_perc], color='green', marker='o', markersize=7)
+    l4,=axs[1].plot(df['Year'], [int(x) for x in Lat_perc], color='red', marker='o', markersize=7,label='Lat_poor')
+    # sns.scatterplot(data=flights_data, x="year", y="passengers")
+    # fig, axs = plt.subplots(1, 2, figsize=(12, 6), sharey=True)
+    fig.legend((l1,l2),('RU_poor','Ger_poor'),loc = 'upper left')
+    fig.legend((l3,l4),('Ru_poor','Lat_poor'),loc='upper right')
+    plt.tight_layout()
+    plt.show()
+    # построение столбчатой диаграммы Years, Ru_perc
+    print('\n1992-2022')
+    print(f'Average Russian poverty indicator :{np.mean(Ru_perc, axis=None)}')
+    print(f'Average Germany poverty indicator :{np.mean(Ger_perc, axis=None)}')
+    print(f'Average Latvia poverty indicator :{np.mean(Lat_perc, axis=None)}')
+    print(f'Максимальный процент людей за чертой бедности:')
+    print(f'Russia:{max(Ru_perc)}')
+    print(f'Germany:{max(Ger_perc)}')
+    print(f'Latvia:{min(Lat_perc)}')
+    years = range(1992,2022)
+    r_year = years[Ru_perc.index(min(Ru_perc))]
+    g_year = years[Ger_perc.index(min(Ger_perc))]
+    l_year = years[Lat_perc.index(min(Lat_perc))]
+    print('Года с самым маленьким процентом бедности c 1992-2022:')
+    print(f'Russia:{r_year}')
+    print(f'Germany:{g_year}')
+    print(f'Latvia:{l_year}')
+    r_year = years[Ru_perc.index(max(Ru_perc))]
+    g_year = years[Ger_perc.index(max(Ger_perc))]
+    l_year = years[Lat_perc.index(max(Lat_perc))]
+    print('Года с самым большим процентом бедности c 1992-2022:')
+    print(f'Russia:{r_year}')
+    print(f'Germany:{g_year}')
+    print(f'Latvia:{l_year}')
+if __name__ == '__main__':
+    main()
